@@ -1070,8 +1070,26 @@
             }
         }
 
-        // Проверка на мобильное устройство
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // Более надежная проверка на мобильное устройство
+        let isMobile = (() => {
+            // Проверка по userAgent
+            const userAgentCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            // Проверка по размеру экрана
+            const screenSizeCheck = window.innerWidth <= 768;
+            // Проверка на сенсорный экран
+            const touchCheck = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            // Если хотя бы одно из условий выполнено — считаем это мобильным устройством
+            return userAgentCheck || (screenSizeCheck && touchCheck);
+        })();
+
+        // Функция для обновления проверки при изменении размера окна
+        function updateMobileCheck() {
+            const userAgentCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const screenSizeCheck = window.innerWidth <= 768;
+            const touchCheck = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            isMobile = userAgentCheck || (screenSizeCheck && touchCheck);
+            init(); // Переинициализируем частицы при изменении
+        }
 
         function init() {
             resize();
@@ -1126,9 +1144,14 @@
             requestAnimationFrame(animate);
         }
 
-        window.addEventListener('resize', init);
+        window.addEventListener('resize', updateMobileCheck);
         init();
         animate();
+
+        // Лог для отладки
+        console.log('Is mobile:', isMobile);
+        console.log('Screen width:', window.innerWidth);
+        console.log('Touch available:', 'ontouchstart' in window || navigator.maxTouchPoints > 0);
 
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const navLinks = document.getElementById('navLinks');
